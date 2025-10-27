@@ -84,72 +84,83 @@ TEMPLATE = """
         <meta charset="utf-8">
         <title>PII Anonymizer</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.5; }
-            .container { max-width: 960px; margin: auto; }
-            textarea { width: 100%; min-height: 200px; font-family: monospace; }
-            .row { display: flex; gap: 2rem; flex-wrap: wrap; }
-            .column { flex: 1 1 45%; min-width: 320px; }
+            body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.5; background: #f7f7f7; }
+            .container { max-width: 1100px; margin: auto; background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+            textarea { width: 100%; min-height: 260px; font-family: monospace; resize: vertical; padding: 1rem; border-radius: 8px; border: 1px solid #d0d0d0; background: #fafafa; }
+            .row { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem; }
+            .column { flex: 1 1 45%; min-width: 320px; display: flex; flex-direction: column; }
+            label { font-weight: 600; margin-bottom: 0.5rem; }
             table { border-collapse: collapse; width: 100%; margin-top: 1rem;}
-            th, td { border: 1px solid #ddd; padding: 0.5rem; }
-            th { background: #f3f3f3; text-align: left; }
-            .error { color: #a00; font-weight: bold; }
-            .mapping-table { max-height: 300px; overflow-y: auto; display: block; }
-            .mapping-table table { width: 100%; }
+            th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+            th { background: #f3f3f3; }
+            .error { color: #a00; font-weight: 600; margin-top: 1rem; }
+            .mapping-table { max-height: 320px; overflow-y: auto; display: block; margin-top: 1rem; }
+            .actions { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+            button { padding: 0.6rem 1.8rem; background: #1463ff; color: #fff; border: none; border-radius: 999px; font-size: 1rem; cursor: pointer; }
+            button:hover { background: #0d4ed8; }
+            input[type="text"] { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid #d0d0d0; background: #fafafa; }
+            .upload { margin-top: 1rem; }
+            .placeholder { color: #666; font-style: italic; }
         </style>
     </head>
     <body>
         <div class="container">
             <h1>PII Anonymizer</h1>
-            <p>Upload an XML/JSON/text document or paste content to receive an anonymized version.</p>
+            <p>Paste text or upload a document, then click <strong>Anonymize</strong> to see an obfuscated copy alongside detected PII.</p>
             {% if error %}
                 <p class="error">{{ error }}</p>
             {% endif %}
             <form method="post" enctype="multipart/form-data">
-                <label for="document">Upload file:</label>
-                <input type="file" name="document" id="document" accept=".xml,.json,.txt,.csv,.log">
-                <p><strong>OR</strong></p>
-                <label for="text_input">Paste text:</label>
-                <textarea name="text_input" id="text_input" placeholder="Paste XML, JSON, or plain text">{{ original_text }}</textarea>
-                <div style="margin-top: 1rem;">
-                    <label for="detected_type">Detected type:</label>
-                    <input type="text" id="detected_type" value="{{ detected_type }}" readonly>
+                <div class="upload">
+                    <label for="document">Optional file upload:</label>
+                    <input type="file" name="document" id="document" accept=".xml,.json,.txt,.csv,.log">
+                </div>
+                <div class="row">
+                    <div class="column">
+                        <label for="text_input">Input text</label>
+                        <textarea name="text_input" id="text_input" placeholder="Paste XML, JSON, or plain text to anonymize">{{ original_text }}</textarea>
+                    </div>
+                    <div class="column">
+                        <label for="anonymized_output">Anonymized output</label>
+                        <textarea id="anonymized_output" readonly>{% if anonymized_text %}{{ anonymized_text }}{% else %}{{ output_placeholder }}{% endif %}</textarea>
+                    </div>
+                </div>
+                <div class="actions">
                     <button type="submit">Anonymize</button>
+                    <div>
+                        <label for="detected_type">Detected type:</label>
+                        <input type="text" id="detected_type" value="{{ detected_type }}" placeholder="(auto-detected after anonymizing)" readonly>
+                    </div>
                 </div>
             </form>
 
             {% if anonymized_text %}
-            <div class="row" style="margin-top: 2rem;">
-                <div class="column">
-                    <h2>Anonymized Output</h2>
-                    <textarea readonly>{{ anonymized_text }}</textarea>
-                </div>
-                <div class="column">
-                    <h2>Detected PII</h2>
-                    {% if mappings %}
-                        <div class="mapping-table">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Label</th>
-                                        <th>Placeholder</th>
-                                        <th>Original</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for row in mappings %}
-                                    <tr>
-                                        <td>{{ row.label }}</td>
-                                        <td>{{ row.placeholder }}</td>
-                                        <td>{{ row.original }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p>No PII detected.</p>
-                    {% endif %}
-                </div>
+            <div style="margin-top: 2rem;">
+                <h2>Detected PII</h2>
+                {% if mappings %}
+                    <div class="mapping-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Label</th>
+                                    <th>Placeholder</th>
+                                    <th>Original</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in mappings %}
+                                <tr>
+                                    <td>{{ row.label }}</td>
+                                    <td>{{ row.placeholder }}</td>
+                                    <td>{{ row.original }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>No PII detected.</p>
+                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -177,6 +188,8 @@ def index():
             except Exception as exc:  # pragma: no cover - narrow scope runtime errors
                 error = f"Failed to anonymize document: {exc}"
 
+    output_placeholder = "Anonymized text will appear here after you click Anonymize."
+
     return render_template_string(
         TEMPLATE,
         original_text=original_text,
@@ -184,10 +197,11 @@ def index():
         detected_type=detected_type,
         mappings=mappings,
         error=error,
+        output_placeholder=output_placeholder,
     )
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "8080"))
+    port = os.getenv('CDSW_APP_PORT', 8080)
     debug = os.environ.get("FLASK_DEBUG", "").lower() in {"1", "true", "yes"}
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    app.run(host="127.0.0.1", port=port, debug=debug)
