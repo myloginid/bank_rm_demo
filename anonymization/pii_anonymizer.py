@@ -19,6 +19,7 @@ import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 from xml.etree import ElementTree as ET
@@ -36,10 +37,10 @@ NER_MODEL = "dslim/bert-base-NER"
 
 # Regex patterns for specific PII classes that generic NER may miss.
 PII_REGEXES: Dict[str, re.Pattern[str]] = {
-    "EMAIL": re.compile(r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b"),
-    "PHONE": re.compile(r"\b(?:\+?\d{1,3}[-\s]?)?(?:\(?\d{2,4}\)?[-\s]?){2,4}\d{2,4}\b"),
     "SSN": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     "CREDIT_CARD": re.compile(r"\b(?:\d[ -]?){13,16}\b"),
+    "EMAIL": re.compile(r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b"),
+    "PHONE": re.compile(r"\b(?:\+?\d{1,3}[-\s]?)?(?:\(?\d{2,4}\)?[-\s]?){2,4}\d{2,4}\b"),
     "DOB": re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
 }
 
@@ -74,6 +75,7 @@ class PlaceholderManager:
         return self.lookup.items()
 
 
+@lru_cache(maxsize=1)
 def load_ner_pipeline():
     """Initialises a CPU-only Hugging Face NER pipeline."""
     return pipeline(
@@ -139,36 +141,77 @@ def anonymize_text(text: str, manager: PlaceholderManager, ner_pipeline) -> str:
     return apply_spans(text, spans)
 
 
+def anonymize_xml_element(element: ET.Element, manager: PlaceholderManager, ner_pipeline) -> None:
+    for node in element.iter():
+        if node.text:
+            node.text = anonymize_text(node.text, manager, ner_pipeline)
+        if node.tail:
+            node.tail = anonymize_text(node.tail, manager, ner_pipeline)
+
+
+def anonymize_xml_string(xml_text: str, manager: PlaceholderManager, ner_pipeline) -> str:
+    root = ET.fromstring(xml_text)
+    anonymize_xml_element(root, manager, ner_pipeline)
+    return ET.tostring(root, encoding="unicode")
+
+
 def anonymize_xml(path: Path, destination: Path, manager: PlaceholderManager, ner_pipeline) -> None:
     tree = ET.parse(path)
     root = tree.getroot()
-    for element in root.iter():
-        if element.text:
-            element.text = anonymize_text(element.text, manager, ner_pipeline)
-        if element.tail:
-            element.tail = anonymize_text(element.tail, manager, ner_pipeline)
-
+    anonymize_xml_element(root, manager, ner_pipeline)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     tree.write(destination, encoding="utf-8", xml_declaration=True)
+
+
+def anonymize_json_value(value, manager: PlaceholderManager, ner_pipeline):
+    if isinstance(value, str):
+        return anonymize_text(value, manager, ner_pipeline)
+    if isinstance(value, list):
+        return [anonymize_json_value(item, manager, ner_pipeline) for item in value]
+    if isinstance(value, dict):
+        return {key: anonymize_json_value(val, manager, ner_pipeline) for key, val in value.items()}
+    return value
+
+
+def anonymize_json_string(json_text: str, manager: PlaceholderManager, ner_pipeline) -> str:
+    data = json.loads(json_text)
+    cleaned = anonymize_json_value(data, manager, ner_pipeline)
+    return json.dumps(cleaned, indent=4)
 
 
 def anonymize_json(path: Path, destination: Path, manager: PlaceholderManager, ner_pipeline) -> None:
     with path.open("r", encoding="utf-8") as fp:
         data = json.load(fp)
 
-    def scrub(value):
-        if isinstance(value, str):
-            return anonymize_text(value, manager, ner_pipeline)
-        if isinstance(value, list):
-            return [scrub(item) for item in value]
-        if isinstance(value, dict):
-            return {key: scrub(val) for key, val in value.items()}
-        return value
-
-    cleaned = scrub(data)
+    cleaned = anonymize_json_value(data, manager, ner_pipeline)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     with destination.open("w", encoding="utf-8") as fp:
         json.dump(cleaned, fp, indent=4)
+
+
+def anonymize_document(content: str, content_type: str) -> Tuple[str, PlaceholderManager]:
+    """
+    Anonymizes textual content according to the provided type.
+
+    Args:
+        content: Raw text payload (XML/JSON/plain).
+        content_type: One of {"xml", "json", "text"}.
+
+    Returns:
+        Tuple of anonymized text and the placeholder manager describing mappings.
+    """
+
+    ner_pipeline = load_ner_pipeline()
+    manager = PlaceholderManager()
+
+    if content_type == "xml":
+        result = anonymize_xml_string(content, manager, ner_pipeline)
+    elif content_type == "json":
+        result = anonymize_json_string(content, manager, ner_pipeline)
+    else:
+        result = anonymize_text(content, manager, ner_pipeline)
+
+    return result, manager
 
 
 def main() -> None:

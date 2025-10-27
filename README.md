@@ -47,3 +47,28 @@ Refer to the script logs for a mapping between original values and placeholders 
 
 - Reorder or adjust `PII_REGEXES` so SSNs and credit cards map to `[SSN_*]` and `[CREDIT_CARD_*]` placeholders instead of the more generic phone label.
 - Consider additional post-processing or custom label aggregation to merge adjacent NER spans and eliminate partial-name leftovers (e.g., `Jane Do` + trailing `e`).
+
+## Web Application
+
+A simple Flask interface (`app.py`) wraps the anonymizer so you can upload documents and inspect both anonymized output and detected PII mappings.
+
+### Install Dependencies
+
+```bash
+python -m pip install --user -r anonymization/requirements.txt
+```
+
+### Run Locally
+
+```bash
+PORT=8080 python app.py
+```
+
+Navigate to `http://127.0.0.1:8080` (or the CDSW-provided URL) and upload XML/JSON/plain text files or paste content directly.
+
+## Deploying on CDSW
+
+1. From the project terminal, ensure dependencies are installed (see above).
+2. In the CDSW UI, create an *Application* pointing to this project.
+3. Use the launch command `PORT=8080 python app.py` and choose an engine size with at least 2 CPUs for faster model warm-up.
+4. Once the application status is *Running*, CDSW will expose an external URL serving the anonymization UI.
