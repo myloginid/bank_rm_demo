@@ -65,3 +65,40 @@ python app.py
 ```
 
 Navigate to `http://127.0.0.1:8080` (or the CDSW-provided URL) and paste text or upload XML/JSON/plain text files, then press **Anonymize** to see the redacted output and detected PII mappings.
+
+## CDSW Application Configuration Reference
+
+The reference CDSW application is configured with the following settings so you can recreate or troubleshoot the deployment quickly:
+
+- Script: `app.py`
+- Subdomain: `pii`
+- Resources: 2 vCPUs, 8 GB memory, 0 GPUs
+- Runtime image: `docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-pbj-workbench-python3.13-standard:2025.09.1-b5`
+- Runtime add-on: `hadoop-cli-7.2.17-hf800`
+- Environment overrides: `CDSW_APP_POLLING_ENDPOINT=/`
+
+You can retrieve the latest configuration at any time with the CDSW REST API:
+
+```bash
+python - <<'PY'
+from cmlapi.api.cml_service_api import CMLServiceApi
+from cmlapi.api_client import ApiClient
+from cmlapi.configuration import Configuration
+
+host = "<workspace_base_url>"  # e.g. https://ml.example.com
+api_key = "<personal_access_token>"
+project_id = "<project_id>"
+application_id = "<application_id>"
+
+config = Configuration()
+config.host = host
+client = ApiClient(configuration=config)
+client.default_headers["Authorization"] = f"Bearer {api_key}"
+api = CMLServiceApi(client)
+
+app = api.get_application(project_id, application_id)
+print(app.to_dict())
+PY
+```
+
+Replace the placeholders with your workspace details. The response reflects the current CDSW application configuration (script, runtime, resources, etc.), making it easy to verify settings before updating or redeploying.
