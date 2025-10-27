@@ -72,3 +72,14 @@ Navigate to `http://127.0.0.1:8080` (or the CDSW-provided URL) and upload XML/JS
 2. In the CDSW UI, create an *Application* pointing to this project.
 3. Use the launch command `PORT=8080 python app.py` and choose an engine size with at least 2 CPUs for faster model warm-up.
 4. Once the application status is *Running*, CDSW will expose an external URL serving the anonymization UI.
+
+### Automating Deployment
+
+You can provision or update the CDSW application programmatically:
+
+```bash
+export CML_API_KEY=<your_personal_access_token>
+python deploy_pii_anonymizer_app.py --subdomain pii-anonymizer
+```
+
+The script pulls configuration from `CDSW_API_URL`, `CDSW_PROJECT_ID`, and `CDSW_DOMAIN` automatically when run inside the project. Use `--help` for advanced options such as overriding CPU/memory or skipping the wait for a running status.
