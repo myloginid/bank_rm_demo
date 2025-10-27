@@ -102,3 +102,22 @@ PY
 ```
 
 Replace the placeholders with your workspace details. The response reflects the current CDSW application configuration (script, runtime, resources, etc.), making it easy to verify settings before updating or redeploying.
+
+## Relationship Manager Productivity Demo
+
+The `productivity/` folder contains a companion Flask demo for bank Relationship
+Managers. It illustrates how to:
+
+- schedule client meetings using Microsoft Graph placeholders,
+- capture meeting notes and progress updates, and
+- generate post-meeting summaries from call transcripts (placeholder LLM).
+
+To explore it locally:
+
+```bash
+python -m productivity.app
+```
+
+Open `http://127.0.0.1:5000/` to interact with the dashboard. Refer to
+`productivity/README.md` for details on swapping the placeholder services with
+production integrations.

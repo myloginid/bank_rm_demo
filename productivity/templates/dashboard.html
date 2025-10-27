@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>RM Productivity Assistant</title>
+        <style>
+            * { box-sizing: border-box; }
+            body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: #f4f6fb; color: #1a1a1a; }
+            header { background: linear-gradient(135deg, #004578, #0078d4); color: #fff; padding: 1.5rem 2rem; }
+            main { padding: 2rem; display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+            section { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 24px rgba(0, 72, 128, 0.1); }
+            h1, h2 { margin: 0 0 1rem 0; }
+            form { display: grid; gap: 0.75rem; }
+            label { font-weight: 600; }
+            input[type="text"], input[type="datetime-local"], textarea, select {
+                width: 100%; padding: 0.65rem 0.75rem; border-radius: 8px; border: 1px solid #c5d2e5; background: #f9fbff;
+            }
+            textarea { min-height: 120px; resize: vertical; }
+            button {
+                padding: 0.65rem 1.5rem; border-radius: 999px;
+                background: #0078d4; color: #fff; font-weight: 600; border: none; cursor: pointer;
+                transition: background 0.2s ease, transform 0.2s ease;
+            }
+            button:hover { background: #005a9e; transform: translateY(-1px); }
+            ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+            li { border: 1px solid #e1e7f0; border-radius: 10px; padding: 1rem; background: #fbfdff; }
+            .meta { font-size: 0.9rem; color: #51607a; display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+            .objective { font-style: italic; margin-bottom: 0.5rem; }
+            .notes { margin-top: 0.75rem; font-size: 0.95rem; }
+            .flash { width: calc(100% - 4rem); margin: 1rem auto 0; padding: 0.9rem 1.2rem; border-radius: 10px; font-weight: 600; }
+            .flash.success { background: #dff6dd; color: #0f5b28; border: 1px solid #badbcc; }
+            .flash.error { background: #fde7e9; color: #a4262c; border: 1px solid #f1b3b5; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>Relationship Manager Productivity Assistant</h1>
+            <p>Plan smarter meetings, capture insights, and deliver post-meeting summaries automatically.</p>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <main>
+            <section>
+                <h2>1. Schedule an intelligent meeting</h2>
+                <form method="post" action="{{ url_for('schedule') }}">
+                    <label for="rm_name">Relationship Manager</label>
+                    <input type="text" id="rm_name" name="rm_name" placeholder="e.g. Anita Gomez" required>
+
+                    <label for="client_name">Client</label>
+                    <input type="text" id="client_name" name="client_name" placeholder="Client organisation or contact" required>
+
+                    <label for="scheduled_for">Date &amp; time</label>
+                    <input type="datetime-local" id="scheduled_for" name="scheduled_for" required>
+
+                    <label for="duration_minutes">Duration (minutes)</label>
+                    <input type="text" id="duration_minutes" name="duration_minutes" value="45">
+
+                    <label for="objective">Meeting objective</label>
+                    <textarea id="objective" name="objective" placeholder="Agenda, desired outcomes…" rows="3"></textarea>
+
+                    <button type="submit">Schedule via Microsoft Graph (placeholder)</button>
+                </form>
+            </section>
+
+            <section>
+                <h2>2. Capture meeting notes</h2>
+                <form method="post" action="{{ url_for('record_notes') }}">
+                    <label for="event_id">Select meeting</label>
+                    <select id="event_id" name="event_id" required>
+                        <option value="">-- choose --</option>
+                        {% for meeting in meetings %}
+                            <option value="{{ meeting.event_id }}">{{ meeting.client_name }} · {{ meeting.scheduled_for.strftime('%Y-%m-%d %H:%M') }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="note">Progress update / Notes</label>
+                    <textarea id="note" name="note" placeholder="Discussed upsell options…"></textarea>
+
+                    <button type="submit">Attach note to meeting</button>
+                </form>
+            </section>
+
+            <section>
+                <h2>3. Summarise a call transcript</h2>
+                <form method="post" action="{{ url_for('process_transcript') }}">
+                    <label for="event_id_transcript">Meeting</label>
+                    <select id="event_id_transcript" name="event_id_transcript" required>
+                        <option value="">-- choose --</option>
+                        {% for meeting in meetings %}
+                            <option value="{{ meeting.event_id }}">{{ meeting.client_name }} · {{ meeting.scheduled_for.strftime('%Y-%m-%d %H:%M') }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="transcript">Transcript (paste sample text)</label>
+                    <textarea id="transcript" name="transcript" placeholder="Action: send updated term sheet by Friday…"></textarea>
+
+                    <button type="submit">Generate summary (placeholder LLM)</button>
+                </form>
+            </section>
+
+            <section>
+                <h2>Upcoming &amp; recent meetings</h2>
+                {% if meetings %}
+                    <ul>
+                        {% for meeting in meetings %}
+                            <li>
+                                <div class="meta">
+                                    <span><strong>RM:</strong> {{ meeting.rm_name }}</span>
+                                    <span><strong>Client:</strong> {{ meeting.client_name }}</span>
+                                    <span><strong>When:</strong> {{ meeting.scheduled_for.strftime('%Y-%m-%d %H:%M') }}</span>
+                                    <span><strong>Duration:</strong> {{ meeting.duration_minutes }} mins</span>
+                                </div>
+                                <div class="objective">{{ meeting.objective or "No objective recorded yet." }}</div>
+
+                                {% if meeting.notes %}
+                                    <div class="notes">
+                                        <strong>Notes:</strong>
+                                        <ul>
+                                            {% for note in meeting.notes %}
+                                                <li>{{ note }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+
+                                {% if meeting.summary %}
+                                    <div class="notes">
+                                        <strong>Summary:</strong>
+                                        <pre style="white-space: pre-wrap;">{{ meeting.summary }}</pre>
+                                    </div>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No meetings scheduled yet. Book your first client conversation above.</p>
+                {% endif %}
+            </section>
+        </main>
+    </body>
+</html>
