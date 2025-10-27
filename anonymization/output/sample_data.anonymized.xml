@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Records>
+    <Record id="1">
+        <Name>[PERSON_1] (Lead Analyst)</Name>
+        <Email>[EMAIL_1]</Email>
+        <Identifiers>
+            <SSN>[PHONE_1]</SSN>
+            <EmployeeId>EMP-4471</EmployeeId>
+        </Identifiers>
+        <Phone>+[PHONE_2] ext. 204</Phone>
+        <Address>45 [LOCATION_1], [LOCATION_2], [LOCATION_3] 02108</Address>
+        <DOB>[PHONE_3]</DOB>
+        <Notes>[PERSON_2]e confirmed the order #INV-8733; follow-up scheduled for Tuesday at 10AM. Reach her at [EMAIL_1] or via [ORGANIZATION_1] chat channel #analytics-support.</Notes>
+        <SupportTickets>
+            <Ticket id="TCK-1001">Escalated by [PERSON_1] regarding client [ORGANIZATION_2]. [PERSON_3]ing question resolved by [PERSON_4] on [PHONE_4].</Ticket>
+            <Ticket id="TCK-1002">Routine maintenance notification sent to [MISC_1]-[MISC_2]II distribution list.</Ticket>
+        </SupportTickets>
+    </Record>
+    <Record id="2">
+        <Name>[PERSON_5] (Customer Success)</Name>
+        <Email>[EMAIL_2]</Email>
+        <Identifiers>
+            <SSN>[PHONE_5]</SSN>
+            <EmployeeId>EMP-5523</EmployeeId>
+        </Identifiers>
+        <Phone>+[PHONE_6]</Phone>
+        <Address>612 [LOCATION_4], [LOCATION_5], [LOCATION_6] 94105</Address>
+        <DOB>[PHONE_7]</DOB>
+        <Notes>[PERSON_5] hosted onboarding for user group "[LOCATION_7]" at 9AM PT; slides posted to [MISC_3] folder [ORGANIZATION_3]-Onboarding. Emergency contact remains [PHONE_8].</Notes>
+        <SupportTickets>
+            <Ticket id="TCK-2001">Customer asked if [EMAIL_2] could add guest [PERSON_6][PERSON_7] to the webinar roster.</Ticket>
+            <Ticket id="TCK-2002">Non-sensitive configuration change completed for sandbox tenant.</Ticket>
+        </SupportTickets>
+    </Record>
+    <Record id="3">
+        <Name>[PERSON_6][PERSON_7] (Consultant)</Name>
+        <Email>[EMAIL_3]</Email>
+        <Identifiers>
+            <SSN>[PHONE_9]</SSN>
+            <Passport>K1299337</Passport>
+        </Identifiers>
+        <Phone>+[PHONE_10]</Phone>
+        <Address>22 [LOCATION_8], [LOCATION_9] NW1 6XE</Address>
+        <DOB>[PHONE_11]</DOB>
+        <Notes>During the [LOCATION_9] site visit, [PERSON_6][PERSON_7] shared draft policy docs (non-confidential) and confirmed availability on +[PHONE_10]. Reference RFP-2025-[LOCATION_10] remains in scope.</Notes>
+        <SupportTickets>
+            <Ticket id="TCK-3001">[PERSON_6]riya reported that order reference [MISC_4]-55211 was shipped to [LOCATION_2] warehouse, not [LOCATION_9] HQ.</Ticket>
+            <Ticket id="TCK-3002">No personally identifiable information provided; ticket closed immediately.</Ticket>
+        </SupportTickets>
+    </Record>
+</Records>

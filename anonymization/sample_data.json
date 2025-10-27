@@ -1,0 +1,71 @@
+[
+    {
+        "customer_id": "CUST-001",
+        "profile": {
+            "name": "Jane Doe (Lead Analyst)",
+            "email": "jane.doe@example.com",
+            "phones": [
+                "+1-617-555-0199 ext. 204",
+                "Helpdesk queue: 800-555-0000"
+            ],
+            "address": "45 Market Street, Boston, MA 02108",
+            "date_of_birth": "1985-04-12"
+        },
+        "identifiers": {
+            "ssn": "123-45-6789",
+            "credit_card": "4111 1111 1111 1111",
+            "employee_id": "EMP-4471"
+        },
+        "activity_log": [
+            "Jane Doe posted KPI summary to channel ops-weekly.",
+            "Reminder: invoice INV-8733 due Friday; confirm by emailing jane.doe@example.com.",
+            "Non-PII note: development sprint velocity was 36 points."
+        ]
+    },
+    {
+        "customer_id": "CUST-002",
+        "profile": {
+            "name": "Michael Smith (Customer Success)",
+            "email": "michael.smith@corporate.com",
+            "phones": [
+                "+1-415-555-0123",
+                "Internal hotline 650-555-2211"
+            ],
+            "address": "612 Mission Street, San Francisco, CA 94105",
+            "date_of_birth": "1990-07-22"
+        },
+        "identifiers": {
+            "ssn": "987-65-4321",
+            "credit_card": "5500 0000 0000 0004",
+            "employee_id": "EMP-5523"
+        },
+        "activity_log": [
+            "Michael Smith ran training for cohort 'Northern Region Q4'.",
+            "Follow up with Priya Patel via michael.smith@corporate.com about RFP-2025-UK.",
+            "Non-sensitive note: webinar satisfaction score was 4.6/5."
+        ]
+    },
+    {
+        "customer_id": "CUST-003",
+        "profile": {
+            "name": "Priya Patel (Consultant)",
+            "email": "priya.patel@healthcare.org",
+            "phones": [
+                "+44-20-7946-0999",
+                "Reception desk +44-20-7777-0000"
+            ],
+            "address": "22 Baker Street, London NW1 6XE",
+            "date_of_birth": "1978-11-03"
+        },
+        "identifiers": {
+            "ssn": "321-54-9876",
+            "credit_card": "3400 000000 00009",
+            "passport": "K1299337"
+        },
+        "activity_log": [
+            "Priya Patel submitted site visit notes; see folder London-2025.",
+            "Call her on +44-20-7946-0999 regarding requisition ORD-55211.",
+            "General reminder: office hours 09:00-17:30 local time."
+        ]
+    }
+]

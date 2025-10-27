@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Records>
+    <Record id="1">
+        <Name>Jane Doe (Lead Analyst)</Name>
+        <Email>jane.doe@example.com</Email>
+        <Identifiers>
+            <SSN>123-45-6789</SSN>
+            <EmployeeId>EMP-4471</EmployeeId>
+        </Identifiers>
+        <Phone>+1-617-555-0199 ext. 204</Phone>
+        <Address>45 Market Street, Boston, MA 02108</Address>
+        <DOB>1985-04-12</DOB>
+        <Notes>Jane Doe confirmed the order #INV-8733; follow-up scheduled for Tuesday at 10AM. Reach her at jane.doe@example.com or via Teams chat channel #analytics-support.</Notes>
+        <SupportTickets>
+            <Ticket id="TCK-1001">Escalated by Jane Doe regarding client ACME Corp. Billing question resolved by Michael on 2024-11-18.</Ticket>
+            <Ticket id="TCK-1002">Routine maintenance notification sent to non-PII distribution list.</Ticket>
+        </SupportTickets>
+    </Record>
+    <Record id="2">
+        <Name>Michael Smith (Customer Success)</Name>
+        <Email>michael.smith@corporate.com</Email>
+        <Identifiers>
+            <SSN>987-65-4321</SSN>
+            <EmployeeId>EMP-5523</EmployeeId>
+        </Identifiers>
+        <Phone>+1-415-555-0123</Phone>
+        <Address>612 Mission Street, San Francisco, CA 94105</Address>
+        <DOB>1990-07-22</DOB>
+        <Notes>Michael Smith hosted onboarding for user group "Northern Region" at 9AM PT; slides posted to SharePoint folder CS-Onboarding. Emergency contact remains 650-555-2211.</Notes>
+        <SupportTickets>
+            <Ticket id="TCK-2001">Customer asked if michael.smith@corporate.com could add guest Priya Patel to the webinar roster.</Ticket>
+            <Ticket id="TCK-2002">Non-sensitive configuration change completed for sandbox tenant.</Ticket>
+        </SupportTickets>
+    </Record>
+    <Record id="3">
+        <Name>Priya Patel (Consultant)</Name>
+        <Email>priya.patel@healthcare.org</Email>
+        <Identifiers>
+            <SSN>321-54-9876</SSN>
+            <Passport>K1299337</Passport>
+        </Identifiers>
+        <Phone>+44-20-7946-0999</Phone>
+        <Address>22 Baker Street, London NW1 6XE</Address>
+        <DOB>1978-11-03</DOB>
+        <Notes>During the London site visit, Priya Patel shared draft policy docs (non-confidential) and confirmed availability on +44-20-7946-0999. Reference RFP-2025-UK remains in scope.</Notes>
+        <SupportTickets>
+            <Ticket id="TCK-3001">Priya reported that order reference ORD-55211 was shipped to Boston warehouse, not London HQ.</Ticket>
+            <Ticket id="TCK-3002">No personally identifiable information provided; ticket closed immediately.</Ticket>
+        </SupportTickets>
+    </Record>
+</Records>

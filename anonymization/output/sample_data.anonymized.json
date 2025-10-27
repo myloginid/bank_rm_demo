@@ -1,0 +1,71 @@
+[
+    {
+        "customer_id": "CUST-001",
+        "profile": {
+            "name": "[PERSON_1] (Lead Analyst)",
+            "email": "[EMAIL_1]",
+            "phones": [
+                "+[PHONE_2] ext. 204",
+                "Help[ORGANIZATION_4] queue: [PHONE_12]"
+            ],
+            "address": "45 [LOCATION_1], [LOCATION_2], [LOCATION_3] 02108",
+            "date_of_birth": "[PHONE_3]"
+        },
+        "identifiers": {
+            "ssn": "[PHONE_1]",
+            "credit_card": "[PHONE_13]",
+            "employee_id": "EMP-4471"
+        },
+        "activity_log": [
+            "[PERSON_1] posted [ORGANIZATION_5] summary to channel ops-weekly.",
+            "Reminder: invoice INV-8733 due Friday; confirm by emailing [EMAIL_1].",
+            "Non-PII note: development sprint velocity was 36 points."
+        ]
+    },
+    {
+        "customer_id": "CUST-002",
+        "profile": {
+            "name": "[PERSON_5] (Customer Success)",
+            "email": "[EMAIL_2]",
+            "phones": [
+                "+[PHONE_6]",
+                "Internal hotline [PHONE_8]"
+            ],
+            "address": "612 [LOCATION_4], [LOCATION_5], [LOCATION_6] 94105",
+            "date_of_birth": "[PHONE_7]"
+        },
+        "identifiers": {
+            "ssn": "[PHONE_5]",
+            "credit_card": "[PHONE_14]",
+            "employee_id": "EMP-5523"
+        },
+        "activity_log": [
+            "[PERSON_5] ran training for cohort '[MISC_5] Q4'.",
+            "Follow up with [PERSON_6][PERSON_7] via [EMAIL_2] about RFP-2025-[LOCATION_10].",
+            "Non-sensitive note: webinar satisfaction score was 4.6/5."
+        ]
+    },
+    {
+        "customer_id": "CUST-003",
+        "profile": {
+            "name": "[PERSON_6][PERSON_7] (Consultant)",
+            "email": "[EMAIL_3]",
+            "phones": [
+                "+[PHONE_10]",
+                "Reception desk +[PHONE_15]"
+            ],
+            "address": "22 [LOCATION_8], [LOCATION_9] NW1 6XE",
+            "date_of_birth": "[PHONE_11]"
+        },
+        "identifiers": {
+            "ssn": "[PHONE_9]",
+            "credit_card": "[PHONE_16]",
+            "passport": "K1299337"
+        },
+        "activity_log": [
+            "[PERSON_6][PERSON_7] submitted site visit notes; see folder [LOCATION_9]-2025.",
+            "Call her on +[PHONE_10] regarding requisition ORD-55211.",
+            "General reminder: office hours 09:00-17:30 local time."
+        ]
+    }
+]
