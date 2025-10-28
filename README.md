@@ -1,14 +1,19 @@
 # PII Anonymization Scaffold
 
-This repository contains sample data and a Python utility for detecting and anonymizing personally identifiable information (PII) in XML and JSON documents using CPU-friendly NLP models.
+This repository contains:
 
-## Contents
+- tooling to detect and anonymize personally identifiable information (PII) in XML, JSON, and free-form text,
+- a Relationship Manager productivity demo, and
+- a text summarisation workflow (currently disabled in the combined app while we rework the deployment flow).
 
-- `anonymization/sample_data.xml` – XML fixture mixing PII and operational text.
-- `anonymization/sample_data.json` – JSON fixture with nested structures and PII embedded alongside non-sensitive context.
-- `anonymization/pii_anonymizer.py` – Script that runs a Hugging Face NER pipeline (`dslim/bert-base-NER`) with supplemental regex detectors to replace sensitive substrings with deterministic placeholders.
-- `anonymization/output/` – Destination for anonymized copies (created on demand).
-- `anonymization/requirements.txt` – Minimal dependencies needed to run the script with CPU-only wheels.
+## Repository Map
+
+- `app.py` – Root Flask application exposing three tabs (Productivity, PII Anonymiser, Text Summariser).
+- `templates/combined.html` – Branded shell with Cloudera styling that hosts each feature inside an iframe.
+- `anonymization/` – Sample data, regex-enhanced NER anonymiser, and HTML template for the web front-end.
+- `productivity/` – Relationship Manager productivity assistant demo and supporting services.
+- `summarize/` – BART-based summarisation blueprint plus automation to register/deploy the model on CML.
+- `static/cloudera-logo.svg` – Branding asset shared by the three experiences.
 
 ## Setup
 
@@ -50,58 +55,13 @@ Refer to the script logs for a mapping between original values and placeholders 
 
 ## Web Application
 
-A simple Flask interface (`app.py`) wraps the anonymizer so you can upload documents and inspect both anonymized output and detected PII mappings.
+Running `python app.py` starts a single Flask server that presents all three workflows in a tabbed interface:
 
-### Install Dependencies
+1. **RM Productivity Assistant** – schedule meetings, capture notes, and attach transcript summaries.
+2. **PII Anonymizer** – paste or upload content and inspect the deterministic placeholder mapping.
+3. **Text Summarizer** – _temporarily unavailable in the combined UI while BART deployment issues are resolved._
 
-```bash
-python -m pip install --user -r anonymization/requirements.txt
-```
-
-### Run Locally
-
-```bash
-python app.py
-```
-
-Navigate to `http://127.0.0.1:8080` (or the CDSW-provided URL) and paste text or upload XML/JSON/plain text files, then press **Anonymize** to see the redacted output and detected PII mappings.
-
-## CDSW Application Configuration Reference
-
-The reference CDSW application is configured with the following settings so you can recreate or troubleshoot the deployment quickly:
-
-- Script: `app.py`
-- Subdomain: `pii`
-- Resources: 2 vCPUs, 8 GB memory, 0 GPUs
-- Runtime image: `docker.repository.cloudera.com/cloudera/cdsw/ml-runtime-pbj-workbench-python3.13-standard:2025.09.1-b5`
-- Runtime add-on: `hadoop-cli-7.2.17-hf800`
-- Environment overrides: `CDSW_APP_POLLING_ENDPOINT=/`
-
-You can retrieve the latest configuration at any time with the CDSW REST API:
-
-```bash
-python - <<'PY'
-from cmlapi.api.cml_service_api import CMLServiceApi
-from cmlapi.api_client import ApiClient
-from cmlapi.configuration import Configuration
-
-host = "<workspace_base_url>"  # e.g. https://ml.example.com
-api_key = "<personal_access_token>"
-project_id = "<project_id>"
-application_id = "<application_id>"
-
-config = Configuration()
-config.host = host
-client = ApiClient(configuration=config)
-client.default_headers["Authorization"] = f"Bearer {api_key}"
-api = CMLServiceApi(client)
-
-app = api.get_application(project_id, application_id)
-print(app.to_dict())
-PY
-```
-
-Replace the placeholders with your workspace details. The response reflects the current CDSW application configuration (script, runtime, resources, etc.), making it easy to verify settings before updating or redeploying.
+You can launch the combined experience locally (`http://127.0.0.1:8080`) or from a CDSW application bound to `app.py`.
 
 ## Relationship Manager Productivity Demo
 
@@ -121,3 +81,27 @@ python -m productivity.app
 Open `http://127.0.0.1:5000/` to interact with the dashboard. Refer to
 `productivity/README.md` for details on swapping the placeholder services with
 production integrations.
+
+## Text Summarisation with BART on CML _(paused)_
+
+The summarisation feature is currently switched off in the combined web application while we stabilise the CML deployment workflow. The helper script in `summarize/register_model.py` remains in the repository so you can experiment independently; once the deployment pipeline is reliable we will re-enable the tab in `app.py`.
+
+To manually provision the model, rely on the script below. Be aware that the UI will not surface it until the integration is reinstated:
+
+```bash
+export CML_BASE_URL="https://<workspace-host>/ml"          # CML control-plane base URL
+export CML_ACCESS_TOKEN="<personal-access-token>"
+export CDSW_PROJECT_ID="<target-project-uuid>"
+
+# Optional overrides for inference requests made by the web app
+export CML_MODEL_ENDPOINT="https://<workspace-host>/model-endpoint/<id>"
+export CML_PROJECT_KEY="<workspace-project-key>"
+
+python summarize/register_model.py --workload S
+```
+
+If you already have an artifact, pass `--artifact /path/to/archive.tar.gz`. Without it, the script assembles a lightweight package that downloads `facebook/bart-large-cnn` at inference time and exposes a `predict(text)` entrypoint. Successful deployment returns the model deployment metadata; record the serving URL as `CML_MODEL_ENDPOINT` so the Flask app can route requests.
+
+The helper first attempts to use the official `cmlapi` client (matching the notebook workflow of creating a model → build → deployment). When the client or credentials are unavailable it automatically falls back to the raw REST calls above, packaging a lightweight archive on the fly. You can inspect or customise the serving entrypoint in `summarize/model/predict.py` before deploying.
+
+Once the endpoint is live you can interact with it via the CLI helpers; the tab will return in a future update when the deployment workflow is fully automated again.

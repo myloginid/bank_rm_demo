@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Summarize Text</title>
+        <style>
+            body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: #f4f6fb; color: #0c3559; }
+            header { background: linear-gradient(135deg, #0c3559, #122b45); color: #fff; padding: 1.5rem 2rem; }
+            main { padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; max-width: 960px; margin: auto; }
+            form { display: grid; gap: 1rem; }
+            label { font-weight: 600; color: #0c3559; }
+            textarea { width: 100%; min-height: 220px; border-radius: 10px; border: 1px solid #c1cede; padding: 1rem; background: #fff; resize: vertical; }
+            textarea[readonly] { background: #fdfdfd; }
+            button { padding: 0.7rem 1.6rem; border-radius: 999px; background: #f58025; color: #fff; border: none; font-weight: 600; cursor: pointer; transition: background 0.2s ease, transform 0.2s ease; align-self: flex-start; }
+            button:hover { background: #d96c1f; transform: translateY(-1px); }
+            .flash { margin: 0 auto; max-width: 960px; width: calc(100% - 4rem); padding: 0.8rem 1.2rem; border-radius: 10px; font-weight: 600; }
+            .flash.success { background: #e9f3fb; color: #0c3559; border: 1px solid rgba(12, 53, 89, 0.2); }
+            .flash.error { background: #fde8e3; color: #c23a1f; border: 1px solid rgba(194, 58, 31, 0.3); }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>Generate concise summaries in seconds</h1>
+            <p>Send free-form text to the deployed CML model and inspect the generated summary below.</p>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <main>
+            <form method="post" action="{{ url_for('summarize.index') }}">
+                <div>
+                    <label for="text_input">Source text</label>
+                    <textarea id="text_input" name="text_input" placeholder="Paste or type content to summarise" required>{{ original_text }}</textarea>
+                </div>
+                <button type="submit">Summarize</button>
+                <div>
+                    <label for="summary_output">Summary</label>
+                    <textarea id="summary_output" readonly placeholder="Model output will appear here">{{ summary_text }}</textarea>
+                </div>
+            </form>
+        </main>
+    </body>
+</html>

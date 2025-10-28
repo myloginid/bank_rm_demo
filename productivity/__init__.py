@@ -1,5 +1,5 @@
 """Relationship Manager productivity demo package."""
 
-from .app import app, main
+from .app import create_productivity_app, productivity_bp
 
-__all__ = ["app", "main"]
+__all__ = ["create_productivity_app", "productivity_bp"]

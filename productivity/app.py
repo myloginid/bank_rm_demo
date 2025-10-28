@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 from datetime import datetime
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 
 from .services import (
     CallAutomation,
@@ -11,8 +19,11 @@ from .services import (
     TranscriptProcessor,
 )
 
-app = Flask(__name__)
-app.secret_key = "rm-productivity-demo"  # For flash messages; replace in production.
+productivity_bp = Blueprint(
+    "productivity",
+    __name__,
+    template_folder="templates",
+)
 
 scheduler = SmartScheduler()
 automation = CallAutomation()
@@ -20,7 +31,12 @@ processor = TranscriptProcessor()
 MEETINGS: MeetingRepository = MeetingRepository()
 
 
-@app.route("/")
+@productivity_bp.before_app_request
+def _ensure_demo_data() -> None:
+    create_demo_meetings()
+
+
+@productivity_bp.route("/")
 def dashboard():
     return render_template(
         "dashboard.html",
@@ -28,7 +44,7 @@ def dashboard():
     )
 
 
-@app.route("/schedule", methods=["POST"])
+@productivity_bp.route("/schedule", methods=["POST"])
 def schedule():
     try:
         rm_name = request.form["rm_name"].strip()
@@ -38,11 +54,11 @@ def schedule():
         duration_minutes = int(request.form.get("duration_minutes", "30"))
     except (KeyError, ValueError):
         flash("Missing or invalid scheduling details.", "error")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("productivity.dashboard"))
 
     if not rm_name or not client_name or not scheduled_for_str:
         flash("Relationship Manager, client, and time are required.", "error")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("productivity.dashboard"))
 
     scheduled_for = datetime.fromisoformat(scheduled_for_str)
 
@@ -67,27 +83,27 @@ def schedule():
         f"Meeting scheduled via Microsoft Graph placeholder (event {graph_response['graph_event_id']}).",
         "success",
     )
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("productivity.dashboard"))
 
 
-@app.route("/notes", methods=["POST"])
+@productivity_bp.route("/notes", methods=["POST"])
 def record_notes():
     event_id = request.form.get("event_id", "").strip()
     note = request.form.get("note", "").strip()
     if not event_id or not note:
         flash("Select a meeting and add a note.", "error")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("productivity.dashboard"))
 
     if not MEETINGS or not MEETINGS.get(event_id):
         flash("Unknown meeting.", "error")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("productivity.dashboard"))
 
     MEETINGS.append_note(event_id, note)
     flash("Note captured for the meeting.", "success")
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("productivity.dashboard"))
 
 
-@app.route("/transcripts", methods=["POST"])
+@productivity_bp.route("/transcripts", methods=["POST"])
 def process_transcript():
     event_id = request.form.get("event_id_transcript", "").strip()
     transcript = request.form.get("transcript", "")
@@ -95,7 +111,7 @@ def process_transcript():
     meeting = MEETINGS.get(event_id) if MEETINGS else None
     if not meeting:
         flash("Select a valid meeting before uploading a transcript.", "error")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("productivity.dashboard"))
 
     automation.start_recording(meeting)
     automation.ingest_transcript(meeting, transcript)
@@ -109,7 +125,7 @@ def process_transcript():
 
     MEETINGS.update_summary(event_id, "\n".join(summary_lines))
     flash("Transcript processed and summary attached.", "success")
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("productivity.dashboard"))
 
 
 def create_demo_meetings() -> None:
@@ -127,10 +143,12 @@ def create_demo_meetings() -> None:
     MEETINGS.add(sample)
 
 
-def main() -> None:
-    create_demo_meetings()
-    app.run(debug=True)
+def create_productivity_app() -> Flask:
+    app = Flask(__name__)
+    app.secret_key = "rm-productivity-demo"  # For flash messages; replace in production.
+    app.register_blueprint(productivity_bp, url_prefix="/productivity")
+    return app
 
 
 if __name__ == "__main__":
-    main()
+    create_productivity_app().run(debug=True)

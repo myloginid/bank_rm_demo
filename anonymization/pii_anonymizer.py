@@ -40,7 +40,9 @@ PII_REGEXES: Dict[str, re.Pattern[str]] = {
     "SSN": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     "CREDIT_CARD": re.compile(r"\b(?:\d[ -]?){13,16}\b"),
     "EMAIL": re.compile(r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b"),
-    "PHONE": re.compile(r"\b(?:\+?\d{1,3}[-\s]?)?(?:\(?\d{2,4}\)?[-\s]?){2,4}\d{2,4}\b"),
+    "PHONE": re.compile(
+        r"\b(?!\d{4}([- ])\d{4}\1\d{4}\1\d{4}\b)(?!\d{15,16}\b)(?:\+?\d{1,3}[-\s]?)?(?:\(?\d{2,4}\)?[-\s]?){2,3}\d{3,4}\b"
+    ),
     "DOB": re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
 }
 
@@ -88,11 +90,20 @@ def load_ner_pipeline():
 
 def gather_regex_spans(text: str, manager: PlaceholderManager) -> List[Tuple[int, int, str]]:
     spans: List[Tuple[int, int, str]] = []
+    occupied: List[Tuple[int, int]] = []
     for label, pattern in PII_REGEXES.items():
         for match in pattern.finditer(text):
+            start, end = match.span()
+            if any(start >= s and end <= e for s, e in occupied):
+                continue
             value = match.group()
+            if label == "PHONE":
+                digit_count = sum(ch.isdigit() for ch in value)
+                if digit_count >= 12:
+                    continue
             placeholder = manager.get(label, value)
-            spans.append((match.start(), match.end(), placeholder))
+            spans.append((start, end, placeholder))
+            occupied.append((start, end))
     return spans
 
 
