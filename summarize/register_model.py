@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Register and deploy the BART summarization model on CML."""
+"""Utilities to register and deploy the BART summarizer on CML."""
 
 import argparse
 import json
@@ -8,7 +8,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import requests
 
@@ -24,6 +24,21 @@ except ModuleNotFoundError:  # pragma: no cover
 BART_MODEL_ID = "facebook/bart-large-cnn"
 DEFAULT_MODEL_NAME = "bart-text-summarizer"
 ARTIFACT_BASENAME = "bart_summarizer"
+
+
+def _normalise_urls(raw_url: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+    if not raw_url:
+        return None, None
+
+    cleaned = raw_url.rstrip("/")
+    rest_base = cleaned
+    if cleaned.endswith("/api/v1"):
+        rest_base = cleaned[: -len("/api/v1")]
+    elif cleaned.endswith("/api/v2"):
+        rest_base = cleaned[: -len("/api/v2")]
+
+    api_url = rest_base + "/api/v1"
+    return rest_base, api_url
 
 
 def _build_headers(access_token: Optional[str]) -> Dict[str, str]:
@@ -165,44 +180,15 @@ def resolve_runtime_identifier(client, runtime_identifier: Optional[str]) -> str
     )
 
 
-def _ensure_api_v1_url(url: str) -> str:
-    cleaned = url.rstrip("/")
-    if cleaned.endswith("/api/v1"):
-        return cleaned
-    if cleaned.endswith("/api/v2"):
-        return cleaned[:-len("/api/v2")] + "/api/v1"
-    return cleaned + "/api/v1"
-
-
-def _strip_api_suffix(url: str) -> str:
-    cleaned = url.rstrip("/")
-    for suffix in ("/api/v1", "/api/v2"):
-        if cleaned.endswith(suffix):
-            return cleaned[: -len(suffix)]
-    return cleaned
-
-
-def build_cmlapi_client(url: Optional[str], api_key: Optional[str]):
+def build_cmlapi_client(api_url: Optional[str], api_key: Optional[str]):
     if cmlapi is None:
         return None
 
     kwargs: Dict[str, Optional[str]] = {}
-    if url:
-        kwargs["url"] = url
-    if api_key:
-        kwargs["cml_api_key"] = api_key
-
-    api_url = None
-    if kwargs.get("url"):
-        api_url = _ensure_api_v1_url(kwargs["url"])
-    else:
-        env_url = os.getenv("CDSW_API_URL") or os.getenv("CML_BASE_URL")
-        if env_url:
-            api_url = _ensure_api_v1_url(env_url)
-
     if api_url:
         kwargs["url"] = api_url
-
+    if api_key:
+        kwargs["cml_api_key"] = api_key
     try:
         return cmlapi.default_client(**kwargs)
     except ValueError:
@@ -210,7 +196,8 @@ def build_cmlapi_client(url: Optional[str], api_key: Optional[str]):
 
 
 def deploy_with_cmlapi(args) -> Dict[str, dict]:
-    client = build_cmlapi_client(args.url, args.api_key)
+    rest_base, api_url = _normalise_urls(args.url or os.getenv("CDSW_API_URL") or os.getenv("CML_BASE_URL"))
+    client = build_cmlapi_client(api_url, args.api_key)
     if client is None:
         raise RuntimeError(
             "Unable to initialise cmlapi client. Provide --url/--api-key or set the appropriate environment variables."
@@ -259,10 +246,9 @@ def deploy_with_cmlapi(args) -> Dict[str, dict]:
 
 
 def deploy_with_rest(args) -> Dict[str, dict]:
-    base_url = args.url or os.getenv("CDSW_API_URL")
-    if not base_url:
+    rest_base, api_url = _normalise_urls(args.url or os.getenv("CDSW_API_URL") or os.getenv("CML_BASE_URL"))
+    if not rest_base:
         raise ValueError("Provide --url or export CML_BASE_URL/ CDSW_API_URL.")
-    base_url = _strip_api_suffix(base_url)
 
     access_token = args.api_key or os.getenv("CML_ACCESS_TOKEN") or os.getenv("CDSW_APIV2_KEY")
     project_id = args.project_id or os.getenv("CDSW_PROJECT_ID")
@@ -271,9 +257,9 @@ def deploy_with_rest(args) -> Dict[str, dict]:
 
     artifact_path = args.artifact or build_bart_artifact()
 
-    registered = register_model_rest(base_url, access_token, args.name, args.description)
-    version = create_model_version_rest(base_url, access_token, registered["id"], artifact_path)
-    deployment = deploy_model_rest(base_url, access_token, project_id, version["id"], args.workload)
+    registered = register_model_rest(rest_base, access_token, args.name, args.description)
+    version = create_model_version_rest(rest_base, access_token, registered["id"], artifact_path)
+    deployment = deploy_model_rest(rest_base, access_token, project_id, version["id"], args.workload)
 
     return {
         "registered_model": registered,
@@ -291,7 +277,11 @@ def parse_args() -> argparse.Namespace:
         help="Model description",
     )
     parser.add_argument("--project-id", default=os.getenv("CDSW_PROJECT_ID"), help="CML project UUID")
-    parser.add_argument("--url", default=os.getenv("CML_BASE_URL") or os.getenv("CDSW_API_URL"), help="CML control plane base URL")
+    parser.add_argument(
+        "--url",
+        default=os.getenv("CDSW_API_URL") or os.getenv("CML_BASE_URL"),
+        help="CML control plane base URL (with or without /api/v1)",
+    )
     parser.add_argument(
         "--api-key",
         default=os.getenv("CML_ACCESS_TOKEN") or os.getenv("CDSW_APIV2_KEY"),
