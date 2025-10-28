@@ -63,6 +63,12 @@ Running `python app.py` starts a single Flask server that presents all three wor
 
 You can launch the combined experience locally (`http://127.0.0.1:8080`) or from a CDSW application bound to `app.py`.
 
+## Screenshots
+
+![Combined toolkit landing page showing tab navigation](image.png)
+![Productivity assistant dashboard with scheduling and notes forms](image-1.png)
+![PII anonymizer web form with detected placeholder mapping](image-2.png)
+
 ## Relationship Manager Productivity Demo
 
 The `productivity/` folder contains a companion Flask demo for bank Relationship
