@@ -72,15 +72,9 @@ Managers. It illustrates how to:
 - capture meeting notes and progress updates, and
 - generate post-meeting summaries from call transcripts (placeholder LLM).
 
-To explore it locally:
 
-```bash
-python -m productivity.app
-```
 
-Open `http://127.0.0.1:5000/` to interact with the dashboard. Refer to
-`productivity/README.md` for details on swapping the placeholder services with
-production integrations.
+
 
 ## Text Summarisation with BART on CML _(paused)_
 
